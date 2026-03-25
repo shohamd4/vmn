@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Run ruff check
+        run: uvx ruff check .
+      - name: Run ruff format check
+        run: uvx ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Install dependencies
+        run: |
+          uv pip install --system -r tests/requirements.txt
+          uv pip install --system -r tests/test_requirements.txt
+          uv pip install --system -e .
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "CI"
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v --ignore=tests/test_perf_show.py -x
